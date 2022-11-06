@@ -285,6 +285,8 @@ def predict():
     numMasks = predictions["sem_seg"].shape[0]
     for i in range(numMasks):
         mask = predictions["sem_seg"][i].cpu().numpy()
+        pprint(mask)
+        pprint(mask.shape)
         # opencvFr = np.resize(mask, (576,768,3))
         boundingBoxes, cat_image = detectBoundingBoxes(img, mask)
         print(f"got bounding boxes: {len(boundingBoxes)}")
