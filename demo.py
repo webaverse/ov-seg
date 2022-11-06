@@ -165,7 +165,13 @@ def predict():
 
     pprint(predictions)
     pprint(predictions["sem_seg"].shape)
-    # boundingBoxes = detectBoundingBoxes(predictions)
+    # for all masks
+    numMasks = predictions["sem_seg"][0]
+    for i in range(numMasks):
+        mask = predictions["sem_seg"][i]
+        # opencvFr = np.resize(mask, (576,768,3))
+        boundingBoxes, cat_image = detectBoundingBoxes(img, mask)
+        print(f"got bounding boxes: {len(boundingBoxes)}")
 
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
     # sem_seg_bytes = sem_seg.cpu().numpy().tobytes()
