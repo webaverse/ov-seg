@@ -8,3 +8,4 @@ fire
 opencv-python
 pandas
 flask
+urllib3
