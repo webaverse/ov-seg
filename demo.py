@@ -8,6 +8,7 @@ import os
 import time
 import cv2
 import tqdm
+import pprint
 
 from detectron2.config import get_cfg
 
@@ -157,9 +158,10 @@ def predict():
     # “panoptic_seg”: A tuple of (pred: Tensor, segments_info: Optional[list[dict]]). The pred tensor has shape (H, W), containing the segment id of each pixel.
 
     # print predictions keys
-    print(f"num keys A {predictions.keys()}")
+    print(f"num keys A")
+    pprint(predictions)
     predictions_cpu = predictions.cpu()
-    print(f"num keys B {predictions_cpu.keys()}")
+    # print(f"num keys B {predictions_cpu.keys()}")
 
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
     # sem_seg_bytes = sem_seg.cpu().numpy().tobytes()
