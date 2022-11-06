@@ -157,24 +157,14 @@ def predict():
     # “panoptic_seg”: A tuple of (pred: Tensor, segments_info: Optional[list[dict]]). The pred tensor has shape (H, W), containing the segment id of each pixel.
 
     # print predictions keys
-    print(predictions.keys())
+    # print(predictions.keys()f)
 
-    # predictions is a dict, serialize it out to json
-    # we only need the “pred_classes” and “pred_boxes” fields
-    # we need to serialize the Tensor class
-    instances = predictions["instances"]
-    pred_boxes = instances.pred_boxes.tensor.numpy()
-    scores = instances.scores.numpy()
-    pred_classes = instances.pred_classes.numpy()
-    predictions_string = json.dumps({
-        'pred_boxes': pred_boxes.tolist(),
-        'scores': scores.tolist(),
-        'pred_classes': pred_classes.tolist(),
-    })
+    sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
+    sem_seg_bytes = sem_seg.tobytes()
 
     body, header = encode_multipart_formdata({
         'previewImg': imgBytes,
-        'predictions': predictions_string
+        'predictions': sem_seg_bytes
     })
 
     response = flask.Response(body, mimetype='multipart/form-data')
