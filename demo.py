@@ -167,7 +167,8 @@ def predict():
         'predictions': sem_seg_bytes
     })
 
-    response = flask.Response(body, mimetype='multipart/form-data')
+    response = flask.Response(body)
+    response.headers["Content-Type"] = header
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "*"
