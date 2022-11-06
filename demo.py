@@ -8,7 +8,7 @@ import os
 import time
 import cv2
 import tqdm
-import pprint
+from pprint import pprint
 
 from detectron2.config import get_cfg
 
