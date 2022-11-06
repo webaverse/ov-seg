@@ -164,7 +164,7 @@ def predict():
     # print(f"num keys B {predictions_cpu.keys()}")
 
     pprint(predictions)
-    pprint(predictions.shape)
+    pprint(predictions["sem_seg"].shape)
     # boundingBoxes = detectBoundingBoxes(predictions)
 
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
