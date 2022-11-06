@@ -18,6 +18,8 @@ from open_vocab_seg import add_ovseg_config
 
 from open_vocab_seg.utils import VisualizationDemo
 
+import flask
+
 # constants
 WINDOW_NAME = "Open vocabulary segmentation"
 
@@ -33,6 +35,8 @@ def setup_cfg(args):
     cfg.freeze()
     return cfg
 
+# demo.py --class-names 'person' 'water' 'flower' 'mat' 'fog' 'land' 'grass' 'field' 'dirt' 'metal' 'light' 'book' 'leaves' 'mountain' 'tree' 'gravel' 'wood' 'bush' 'bag' 'food' 'path' 'stairs' 'rock' 'house' 'clothes' 'animal' --input ./dalle5.png --output ./pred5 --opts MODEL.WEIGHTS ./ovseg_swinbase_vitL14_ft_mpt.pth
+# if __name__ == "__main__":
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 demo for open vocabulary segmentation")
@@ -52,6 +56,7 @@ def get_parser():
         "--class-names",
         nargs="+",
         help="A list of user-defined class_names"
+        default=['person', 'water', 'flower', 'mat', 'fog', 'land', 'grass', 'field', 'dirt', 'metal', 'light', 'book', 'leaves', 'mountain', 'tree', 'gravel', 'wood', 'bush', 'bag', 'food', 'path', 'stairs', 'rock', 'house', 'clothes', 'animal'],
     )
     parser.add_argument(
         "--output",
@@ -61,54 +66,106 @@ def get_parser():
     parser.add_argument(
         "--opts",
         help="Modify config options using the command-line 'KEY VALUE' pairs",
-        default=[],
         nargs=argparse.REMAINDER,
+        default=['MODEL.WEIGHTS', './ovseg_swinbase_vitL14_ft_mpt.pth'],
     )
     return parser
 
+###
 
-if __name__ == "__main__":
-    mp.set_start_method("spawn", force=True)
-    args = get_parser().parse_args()
-    setup_logger(name="fvcore")
-    logger = setup_logger()
-    logger.info("Arguments: " + str(args))
+# bootstrap
+mp.set_start_method("spawn", force=True)
+args = get_parser().parse_args()
+setup_logger(name="fvcore")
+logger = setup_logger()
+logger.info("Arguments: " + str(args))
 
-    cfg = setup_cfg(args)
+cfg = setup_cfg(args)
 
-    demo = VisualizationDemo(cfg)
-    class_names = args.class_names
-    if args.input:
-        if len(args.input) == 1:
-            args.input = glob.glob(os.path.expanduser(args.input[0]))
-            assert args.input, "The input path(s) was not found"
-        for path in tqdm.tqdm(args.input, disable=not args.output):
-            # use PIL, to be consistent with evaluation
-            img = read_image(path, format="BGR")
-            start_time = time.time()
-            predictions, visualized_output = demo.run_on_image(img, class_names)
-            logger.info(
-                "{}: {} in {:.2f}s".format(
-                    path,
-                    "detected {} instances".format(len(predictions["instances"]))
-                    if "instances" in predictions
-                    else "finished",
-                    time.time() - start_time,
-                )
-            )
+demo = VisualizationDemo(cfg)
+class_names = args.class_names
 
-            if args.output:
-                if os.path.isdir(args.output):
-                    assert os.path.isdir(args.output), args.output
-                    out_filename = os.path.join(args.output, os.path.basename(path))
-                else:
-                    assert len(args.input) == 1, "Please specify a directory with args.output"
-                    out_filename = args.output
-                visualized_output.save(out_filename)
-            else:
-                cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-                cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
-                if cv2.waitKey(0) == 27:
-                    break  # esc to quit
-    else:
-        raise NotImplementedError
+###
+
+# flask server
+app = flask.Flask(__name__)
+
+# serve api route
+@app.route("/label", methods=["POST", "OPTIONS"])
+def predict():
+    if (flask.request.method == "OPTIONS"):
+        print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        print("got options 2")
+        return response
+
+    # read image from the POST body data
+    body = flask.request.get_data()
+    # now read the PNG and convert to ndarray
+    # use PIL, to be consistent with evaluation
+    # img = read_image(path, format="BGR") # code missing, try to do it manually; make sure it's BGR
+    img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+    
+    start_time = time.time()
+    predictions, visualized_output = demo.run_on_image(img, class_names)
+    logger.info(
+        "{}: {} in {:.2f}s".format(
+            # path,
+            "detected {} instances".format(len(predictions["instances"]))
+            if "instances" in predictions
+            else "finished",
+            time.time() - start_time,
+        )
+    )
+
+    # visualized_output is a VisImage object
+    # def get_image(self):
+    #     """
+    #     Returns:
+    #         ndarray:
+    #             the visualized image of shape (H, W, 3) (RGB) in uint8 type.
+    #             The shape is scaled w.r.t the input image using the given `scale` argument.
+    # respond with the output as PNG to the client
+    # visualized_output.save(out_filename)
+    nda = visualized_output.get_image()
+    bio = cv2.imencode('.png', nda)[1]
+    response = flask.Response(
+        response=bio.tobytes(),
+        status=200,
+        mimetype="image/png"
+    )
+
+    # if args.output:
+    #     if os.path.isdir(args.output):
+    #         assert os.path.isdir(args.output), args.output
+    #         out_filename = os.path.join(args.output, os.path.basename(path))
+    #     else:
+    #         assert len(args.input) == 1, "Please specify a directory with args.output"
+    #         out_filename = args.output
+    #     visualized_output.save(out_filename)
+    # else:
+    #     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+    #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
+    #     if cv2.waitKey(0) == 27:
+    #         break  # esc to quit
+
+    # make a response with the image
+    # response = flask.Response(bs, mimetype="image/png")
+    # set cors/coop headers
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    # return the response
+    return response
+
+# listen as a threaded server on 0.0.0.0:80
+app.run(host="0.0.0.0", port=80, threaded=True)
