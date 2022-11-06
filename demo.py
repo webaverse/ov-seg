@@ -168,7 +168,7 @@ def predict():
     pprint(predictions)
     pprint(predictions["sem_seg"].shape)
     # for all masks
-    numMasks = predictions["sem_seg"][0]
+    numMasks = predictions["sem_seg"].shape[0]
     for i in range(numMasks):
         mask = predictions["sem_seg"][i]
         # opencvFr = np.resize(mask, (576,768,3))
