@@ -142,11 +142,36 @@ def predict():
 
     # respond with multipart/form-data
     # the multipart/form-data includes imgBytes (the png image) and predictions (in json form)
-    # we use a formatting library...
+
+    # here is the format of the predictions dict:
+    # “instances”: Instances object with the following fields:
+        # “pred_boxes”: Boxes object storing N boxes, one for each detected instance.
+        # “scores”: Tensor, a vector of N confidence scores.
+        # “pred_classes”: Tensor, a vector of N labels in range [0, num_categories).
+        # “pred_masks”: a Tensor of shape (N, H, W), masks for each detected instance.
+        # “pred_keypoints”: a Tensor of shape (N, num_keypoint, 3). Each row in the last dimension is (x, y, score). Confidence scores are larger than 0.
+    # “sem_seg”: Tensor of (num_categories, H, W), the semantic segmentation prediction.
+    # “proposals”: Instances object with the following fields:
+    # “proposal_boxes”: Boxes object storing N boxes.
+    # “objectness_logits”: a torch vector of N confidence scores.
+    # “panoptic_seg”: A tuple of (pred: Tensor, segments_info: Optional[list[dict]]). The pred tensor has shape (H, W), containing the segment id of each pixel.
+
+    # predictions is a dict, serialize it out to json
+    # we only need the “pred_classes” and “pred_boxes” fields
+    # we need to serialize the Tensor class
+    instances = predictions["instances"]
+    pred_boxes = instances.pred_boxes.tensor.numpy()
+    scores = instances.scores.numpy()
+    pred_classes = instances.pred_classes.numpy()
+    predictions_string = json.dumps({
+        'pred_boxes': pred_boxes.tolist(),
+        'scores': scores.tolist(),
+        'pred_classes': pred_classes.tolist(),
+    })
 
     body, header = encode_multipart_formdata({
         'previewImg': imgBytes,
-        'predictions': json.dumps(predictions)
+        'predictions': predictions_string
     })
 
     response = flask.Response(body, mimetype='multipart/form-data')
