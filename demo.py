@@ -156,6 +156,9 @@ def predict():
     # “objectness_logits”: a torch vector of N confidence scores.
     # “panoptic_seg”: A tuple of (pred: Tensor, segments_info: Optional[list[dict]]). The pred tensor has shape (H, W), containing the segment id of each pixel.
 
+    # print predictions keys
+    print(predictions.keys())
+
     # predictions is a dict, serialize it out to json
     # we only need the “pred_classes” and “pred_boxes” fields
     # we need to serialize the Tensor class
