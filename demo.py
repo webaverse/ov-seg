@@ -116,7 +116,7 @@ def predict():
     start_time = time.time()
     predictions, visualized_output = demo.run_on_image(img, class_names)
     logger.info(
-        "{}: {} in {:.2f}s".format(
+        "{} in {:.2f}s".format(
             # path,
             "detected {} instances".format(len(predictions["instances"]))
             if "instances" in predictions
