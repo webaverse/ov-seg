@@ -111,7 +111,7 @@ def predict():
     # now read the PNG and convert to ndarray
     # use PIL, to be consistent with evaluation
     # img = read_image(path, format="BGR") # code missing, try to do it manually; make sure it's BGR
-    img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)``
+    img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
     
     start_time = time.time()
     predictions, visualized_output = demo.run_on_image(img, class_names)
