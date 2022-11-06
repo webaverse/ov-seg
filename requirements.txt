@@ -9,3 +9,4 @@ opencv-python
 pandas
 flask
 urllib3
+skimage
