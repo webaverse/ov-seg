@@ -160,7 +160,7 @@ def predict():
     # print(predictions.keys()f)
 
     sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
-    sem_seg_bytes = sem_seg.tobytes()
+    sem_seg_bytes = sem_seg.numpy().tobytes()
 
     body, header = encode_multipart_formdata({
         'previewImg': imgBytes,
