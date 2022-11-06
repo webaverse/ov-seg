@@ -20,6 +20,8 @@ from open_vocab_seg.utils import VisualizationDemo
 
 import flask
 import numpy as np
+from urllib3 import encode_multipart_formdata
+import json
 
 # constants
 WINDOW_NAME = "Open vocabulary segmentation"
@@ -115,16 +117,6 @@ def predict():
     
     start_time = time.time()
     predictions, visualized_output = demo.run_on_image(img, class_names)
-    logger.info(
-        "{} in {:.2f}s".format(
-            # path,
-            "detected {} instances".format(len(predictions["instances"]))
-            if "instances" in predictions
-            else "finished",
-            time.time() - start_time,
-        )
-    )
-
     # visualized_output is a VisImage object
     # def get_image(self):
     #     """
@@ -136,11 +128,34 @@ def predict():
     # visualized_output.save(out_filename)
     nda = visualized_output.get_image()
     bio = cv2.imencode('.png', nda)[1]
-    response = flask.Response(
-        response=bio.tobytes(),
-        status=200,
-        mimetype="image/png"
+    imgBytes = bio.tobytes()
+    
+    logger.info(
+        "{} in {:.2f}s".format(
+            # path,
+            "detected {} instances".format(len(predictions["instances"]))
+            if "instances" in predictions
+            else "finished",
+            time.time() - start_time,
+        )
     )
+
+    # respond with multipart/form-data
+    # the multipart/form-data includes imgBytes (the png image) and predictions (in json form)
+    # we use a formatting library...
+
+    body, header = encode_multipart_formdata({
+        'previewImg': imgBytes,
+        'predictions': json.dumps(predictions)
+    })
+
+    response = flask.Response(body, mimetype='multipart/form-data')
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
     # if args.output:
     #     if os.path.isdir(args.output):
@@ -155,16 +170,7 @@ def predict():
     #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
     #     if cv2.waitKey(0) == 27:
     #         break  # esc to quit
-
-    # make a response with the image
-    # response = flask.Response(bs, mimetype="image/png")
-    # set cors/coop headers
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
-    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    
     # return the response
     return response
 
