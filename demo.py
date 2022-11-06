@@ -24,6 +24,8 @@ import numpy as np
 from urllib3 import encode_multipart_formdata
 import json
 
+from skimage.measure import label, regionprops, find_contours
+
 # constants
 WINDOW_NAME = "Open vocabulary segmentation"
 
