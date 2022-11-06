@@ -55,7 +55,7 @@ def get_parser():
     parser.add_argument(
         "--class-names",
         nargs="+",
-        help="A list of user-defined class_names"
+        help="A list of user-defined class_names",
         default=['person', 'water', 'flower', 'mat', 'fog', 'land', 'grass', 'field', 'dirt', 'metal', 'light', 'book', 'leaves', 'mountain', 'tree', 'gravel', 'wood', 'bush', 'bag', 'food', 'path', 'stairs', 'rock', 'house', 'clothes', 'animal'],
     )
     parser.add_argument(
