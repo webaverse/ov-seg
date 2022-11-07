@@ -24,29 +24,57 @@ import numpy as np
 from urllib3 import encode_multipart_formdata
 import json
 import imutils
+from skimage.measure import label, regionprops, find_contours
 
-# get the bounding boxes of maskImage
-# maskImage is a uint8 ndarray (1024, 1024) of mask data
-# return the list of bounding boxes in the form [x1, y1, x2, y2]
-# use a flood fill algorithm to find the bounding boxes
-# make sure that small islands (less than 32px) are not included
+""" Creating a directory """
+def create_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+""" Convert a mask to border image """
+def mask_to_border(mask):
+    h, w = mask.shape
+    border = np.zeros((h, w))
+
+    contours = find_contours(mask, 128)
+    for contour in contours:
+        for c in contour:
+            x = int(c[0])
+            y = int(c[1])
+            border[x][y] = 255
+
+    return border
+
+""" Mask to bounding boxes """
+def mask_to_bbox(mask):
+    bboxes = []
+
+    mask = mask_to_border(mask)
+    lbl = label(mask)
+    props = regionprops(lbl)
+    for prop in props:
+        x1 = prop.bbox[1]
+        y1 = prop.bbox[0]
+
+        x2 = prop.bbox[3]
+        y2 = prop.bbox[2]
+
+        bboxes.append([x1, y1, x2, y2])
+
+    return bboxes
+
+def parse_mask(mask):
+    mask = np.expand_dims(mask, axis=-1)
+    mask = np.concatenate([mask, mask, mask], axis=-1)
+    return mask
+
+# find the pixel mask contours with a flood fill
+# do not keep bounding boxes smaller than the given area
+# "maskImage" is a uint8 array (1024, 1024)
 def detectBoundingBoxes(maskImage, minSize):
-    gray = cv2.GaussianBlur(maskImage, (5, 5), 0)
-    # threshold the image,
-    thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)[1]
-    # find contours in thresholded image, then grab the largest
-    # one
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    # loop over the contours
-    boxes = []
-    for c in cnts:
-        if w < minSize or h < minSize:
-            continue
-        # compute the bounding box of the contour and log it
-        (x, y, w, h) = cv2.boundingRect(c)
-        boxes.append([x, y, x + w, y + h])
-    return boxes
+    """ Detecting bounding boxes """
+    bboxes = mask_to_bbox(maskImage)
+    return bboxes
 
 def setup_cfg(args):
     # load config from file and command-line arguments
@@ -200,22 +228,25 @@ def predict():
     # zero out elements where the mask is below the threshold
     threshold = 0.9
     r[r < threshold] = 0
-    # get the argmax
-    maskArgMax = r.argmax(dim=0)
+    # clear out zero values
+    blank_area = (r[0] == 0)
+    pred_mask = r.argmax(dim=0).to('cpu')
+    pred_mask[blank_area] = 255
+
     # encode the segment mask into a png, the rgb values storing the class index out of 255
-    segment_mask_img = cv2.imencode('.png', maskArgMax.cpu().numpy())[1].tobytes()
+    segment_mask_img = cv2.imencode('.png', pred_mask.numpy())[1].tobytes()
     # compute bounding boxes
     for i in range(numMasks):
         # get the mask for this class (i)
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
         # the data is a tensor()
         # we want to set the result in the mask to 1 if the class was i, and 0 otherwise
-        mask = (maskArgMax == i)
+        mask = (pred_mask == i)
         # print("got mask")
         # pprint(mask)
         # pprint(mask.shape)
         # convert to numpy
-        mask = mask.cpu().numpy().astype(np.uint8)
+        mask = mask.numpy().astype(np.uint8)
         bboxes = detectBoundingBoxes(mask, 64)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
