@@ -96,7 +96,7 @@ def parse_mask(mask):
     return mask
 
 # if __name__ == "__main__":
-def detectBoundingBoxes(image, maskImage):
+def detectBoundingBoxes(image, maskImage, minBoxSize):
     """ Load the dataset """
     # images = sorted(glob(os.path.join("data", "image", "*")))
     # masks = sorted(glob(os.path.join("data", "mask", "*")))
@@ -120,7 +120,10 @@ def detectBoundingBoxes(image, maskImage):
 
     """ marking bounding box on image """
     for bbox in bboxes:
-        x = cv2.rectangle(x, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+        w = bbox[2] - bbox[0]
+        h = bbox[3] - bbox[1]
+        if (w >= minBoxSize and h >= minBoxSize):
+          x = cv2.rectangle(x, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
     """ Saving the image """
     cat_image = np.concatenate([x, parse_mask(y)], axis=1)
@@ -298,7 +301,7 @@ def predict():
         pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
-        bboxes, cat_image = detectBoundingBoxes(img, mask)
+        bboxes, cat_image = detectBoundingBoxes(img, mask, 64)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
