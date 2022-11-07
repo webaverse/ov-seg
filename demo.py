@@ -23,24 +23,30 @@ import flask
 import numpy as np
 from urllib3 import encode_multipart_formdata
 import json
+import imutils
 
 # get the bounding boxes of maskImage
-# maskImage is a boolean ndarray (1024, 1024) of mask data
+# maskImage is a uint8 ndarray (1024, 1024) of mask data
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
 # use a flood fill algorithm to find the bounding boxes
+# make sure that small islands (less than 32px) are not included
 def detectBoundingBoxes(maskImage, minSize):
-    maskImage = maskImage.astype(np.uint8)
-    maskImage = cv2.bitwise_not(maskImage)
-    maskImage = cv2.dilate(maskImage, np.ones((32, 32), np.uint8), iterations=1)
-    maskImage = cv2.bitwise_not(maskImage)
-    contours, hierarchy = cv2.findContours(maskImage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    boundingBoxes = []
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        if (w >= minSize and h >= minSize):
-            boundingBoxes.append([x, y, x + w, y + h])
-    return boundingBoxes
-
+    gray = cv2.GaussianBlur(maskImage, (10, 10), 0)
+    # threshold the image,
+    thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)[1]
+    # find contours in thresholded image, then grab the largest
+    # one
+    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    # loop over the contours
+    boxes = []
+    for c in cnts:
+        if w < minSize or h < minSize:
+            continue
+        # compute the bounding box of the contour and log it
+        (x, y, w, h) = cv2.boundingRect(c)
+        boxes.append([x, y, x + w, y + h])
+    return boxes
 
 def setup_cfg(args):
     # load config from file and command-line arguments
@@ -209,7 +215,7 @@ def predict():
         # pprint(mask)
         # pprint(mask.shape)
         # convert to numpy
-        mask = mask.cpu().numpy()
+        mask = mask.cpu().numpy().astype(np.uint8)
         bboxes = detectBoundingBoxes(mask, 64)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
