@@ -290,7 +290,9 @@ def predict():
     for i in range(numMasks):
         # get the mask for this class (i)
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
-        mask = maskArgMax == i
+        # the data is a tensor()
+        # we want to set the result in the mask to 1 if the class was i, and 0 otherwise
+        mask = (maskArgMax == i).float()
         print("got mask")
         pprint(mask)
         pprint(mask.shape)
