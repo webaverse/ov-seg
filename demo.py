@@ -92,7 +92,7 @@ def setup_cfg(args):
 # demo.py --class-names 'person' 'water' 'flower' 'mat' 'fog' 'land' 'grass' 'field' 'dirt' 'metal' 'light' 'book' 'leaves' 'mountain' 'tree' 'gravel' 'wood' 'bush' 'bag' 'food' 'path' 'stairs' 'rock' 'house' 'clothes' 'animal' --input ./dalle5.png --output ./pred5 --opts MODEL.WEIGHTS ./ovseg_swinbase_vitL14_ft_mpt.pth
 # if __name__ == "__main__":
 
-defaultClassNames = ['person', 'water', 'flower', 'mat', 'fog', 'land', 'grass', 'field', 'dirt', 'metal', 'light', 'book', 'leaves', 'mountain', 'tree', 'gravel', 'wood', 'bush', 'bag', 'food', 'path', 'stairs', 'rock', 'house', 'clothes', 'animal']
+defaultClassNames = ['person']
 def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 demo for open vocabulary segmentation")
     parser.add_argument(
@@ -169,9 +169,9 @@ def predict():
     img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
 
     # class names array from the query string, split it by ","
-    class_names = flask.request.args.get("classes").split(",")
+    class_names = flask.request.args.get("`classes`").split(",")
     if (len(class_names) == 1 and class_names[0] == ""):
-        class_names = defaultClassNames
+        class_names = [defaultClassNames]
     # parse the threshold query string
     threshold = float(flask.request.args.get("threshold"))
     if (threshold == None):
