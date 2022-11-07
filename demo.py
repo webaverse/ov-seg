@@ -172,6 +172,10 @@ def predict():
     class_names = flask.request.args.get("classes").split(",")
     if (len(class_names) == 1 and class_names[0] == ""):
         class_names = defaultClassNames
+    # parse the threshold query string
+    threshold = float(flask.request.args.get("threshold"))
+    if (threshold == None):
+        threshold = 0.5
     
     start_time = time.time()
     predictions, visualized_output = demo.run_on_image(img, class_names)
@@ -232,7 +236,6 @@ def predict():
     r2 = r.clone()
     
     # zero out elements where the mask is below the threshold
-    threshold = 0.1
     r2[r2 < threshold] = 0
     # clear out zero values
     blank_area = (r2[0] == 0)
