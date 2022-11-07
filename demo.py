@@ -25,6 +25,7 @@ from urllib3 import encode_multipart_formdata
 import json
 
 from skimage.measure import label, regionprops, find_contours
+import tensorflow as tf
 
 # constants
 WINDOW_NAME = "Open vocabulary segmentation"
@@ -290,7 +291,7 @@ def predict():
     for i in range(numMasks):
         # get the mask for this class (i)
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
-        mask = maskArgMax == i
+        mask = mask = tf.where(maskArgMax == i, 1, 0)
         print("got mask")
         pprint(mask)
         pprint(mask.shape)
