@@ -324,7 +324,7 @@ def predict():
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-    response.headers["Bounding-Boxes"] = json.dumps(boundingBoxes)
+    response.headers["X-Bounding-Boxes"] = json.dumps(boundingBoxes)
 
     # if args.output:
     #     if os.path.isdir(args.output):
