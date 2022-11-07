@@ -228,13 +228,13 @@ def predict():
     # zero out elements where the mask is below the threshold
     threshold = 0.3
     r[r < threshold] = 0
-    # encode the segment mask into a png, the rgb values storing the class index out of 255
-    maskArgMax = r.argmax(dim=0)
-    segment_mask_img = cv2.imencode('.png', maskArgMax.cpu().numpy())[1].tobytes()
     # clear out zero values
     blank_area = (r[0] == 0)
     pred_mask = r.argmax(dim=0).to('cpu')
     pred_mask[blank_area] = 255
+
+    # encode the segment mask into a png, the rgb values storing the class index out of 255
+    segment_mask_img = cv2.imencode('.png', pred_mask.numpy())[1].tobytes()
 
     # compute bounding boxes
     for i in range(numMasks):
