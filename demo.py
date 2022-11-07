@@ -200,7 +200,7 @@ def predict():
     # visualized_output.save(out_filename)
     nda = visualized_output.get_image()
     bio = cv2.imencode('.png', nda)[1]
-    imgBytes = bio.tobytes()
+    # imgBytes = bio.tobytes()
     
     logger.info(
         "{} in {:.2f}s".format(
