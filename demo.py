@@ -28,7 +28,7 @@ import json
 # maskImage is a boolean ndarray (1024, 1024) of mask data
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
 # use a flood fill algorithm to find the bounding boxes
-def detectBoundingBoxes(maskImage, minSize, maxSize):
+def detectBoundingBoxes(maskImage, minSize):
     maskImage = maskImage.astype(np.uint8)
     maskImage = cv2.bitwise_not(maskImage)
     maskImage = cv2.dilate(maskImage, np.ones((3, 3), np.uint8), iterations=1)
@@ -37,7 +37,7 @@ def detectBoundingBoxes(maskImage, minSize, maxSize):
     boundingBoxes = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        if (w >= minSize and h >= minSize) and (w < maxSize or h < maxSize):
+        if (w >= minSize and h >= minSize):
             boundingBoxes.append([x, y, x + w, y + h])
     return boundingBoxes
 
@@ -192,7 +192,7 @@ def predict():
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
     # zero out elements where the mask is below the threshold
-    threshold = 1.0
+    threshold = 0.9
     r[r < threshold] = 0
     # get the argmax
     maskArgMax = r.argmax(dim=0)
@@ -210,7 +210,7 @@ def predict():
         # pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
-        bboxes = detectBoundingBoxes(mask, 64, 750)
+        bboxes = detectBoundingBoxes(mask, 64)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
