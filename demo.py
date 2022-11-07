@@ -31,7 +31,7 @@ import imutils
 # use a flood fill algorithm to find the bounding boxes
 # make sure that small islands (less than 32px) are not included
 def detectBoundingBoxes(maskImage, minSize):
-    gray = cv2.GaussianBlur(maskImage, (15, 15), 0)
+    gray = cv2.GaussianBlur(maskImage, (5, 5), 0)
     # threshold the image,
     thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)[1]
     # find contours in thresholded image, then grab the largest
