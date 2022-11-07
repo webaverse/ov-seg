@@ -28,13 +28,10 @@ import json
 # maskImage is a boolean ndarray (1024, 1024) of mask data
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
 def detectBoundingBoxes(maskImage, minArea):
-    maskImage = maskImage.astype(np.uint8)
+    maskImage = maskImage.astype(np.float32)
     pprint("maskImage")
     pprint(maskImage)
-    # FindContours supports only CV_8UC1 images when mode != CV_RETR_FLOODFILL otherwise supports CV_32SC1 images only in function 'cvStartFindContours_Impl'
-    # therefore, convert to CV_8UC1
-    cv2Image = cv2.cvtColor(maskImage, cv2.COLOR_GRAY2BGR)
-    contours, hierarchy = cv2.findContours(cv2Image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(maskImage, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     boundingBoxes = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
