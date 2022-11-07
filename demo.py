@@ -24,12 +24,11 @@ import numpy as np
 from urllib3 import encode_multipart_formdata
 import json
 
-# use detectron to get the bounding boxes of maskImage
-# maskImage is a numpy ndarray (1024, 1024)
+# get the bounding boxes of maskImage
+# maskImage is a boolean ndarray (1024, 1024) of mask data
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
 def detectBoundingBoxes(maskImage, minArea):
-    # get the bounding boxes
-    contours, hierarchy = cv2.findContours(maskImage, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(maskImage.astype(np.uint8), cv2.CV_RETR_FLOODFILL, cv2.CHAIN_APPROX_SIMPLE)
     boundingBoxes = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
@@ -199,7 +198,7 @@ def predict():
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
         # the data is a tensor()
         # we want to set the result in the mask to 1 if the class was i, and 0 otherwise
-        mask = (maskArgMax == i).float()
+        mask = (maskArgMax == i)
         # print("got mask")
         # pprint(mask)
         # pprint(mask.shape)
