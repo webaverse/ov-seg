@@ -225,12 +225,12 @@ def predict():
     boundingBoxes = []
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
-    # encode the segment mask into a png, the rgb values storing the class index out of 255
-    r_numpy = r.cpu().numpy()
-    segment_mask_img = cv2.imencode('.png', r_numpy)[1]
     # zero out elements where the mask is below the threshold
     threshold = 0.9
     r[r < threshold] = 0
+    # encode the segment mask into a png, the rgb values storing the class index out of 255
+    maskArgMax = r.argmax(dim=0)
+    segment_mask_img = cv2.imencode('.png', maskArgMax.cpu().numpy())[1].tobytes()
     # clear out zero values
     blank_area = (r[0] == 0)
     pred_mask = r.argmax(dim=0).to('cpu')
