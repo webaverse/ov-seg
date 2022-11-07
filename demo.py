@@ -48,14 +48,14 @@ WINDOW_NAME = "Open vocabulary segmentation"
 # use skimage to extract the bounding boxes of maskImage
 # maskImage is a numpy ndarray (1024, 1024)
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
-def detectBoundingBoxes(maskImage):
+def detectBoundingBoxes(maskImage, minArea):
     # label image regions
     label_image = label(maskImage)
     # get the bounding boxes
     boxes = []
     for region in regionprops(label_image):
         # take regions with large enough areas
-        if region.area >= 300:
+        if region.area >= minArea:
             # draw rectangle around segmented coins
             minr, minc, maxr, maxc = region.bbox
             boxes.append([minc, minr, maxc, maxr])
@@ -238,7 +238,7 @@ def predict():
         # pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
-        bboxes = detectBoundingBoxes(img, mask, 64)
+        bboxes = detectBoundingBoxes(mask, 300)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
