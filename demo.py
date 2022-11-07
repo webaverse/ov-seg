@@ -169,7 +169,7 @@ def predict():
     img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
 
     # class names array from the query string, split it by ","
-    classes_arg = flask.request.args.get("`classes`")
+    classes_arg = flask.request.args.get("classes")
     class_names = classes_arg.split(",")
     print(f"classes arg {classes_arg}")
     if (len(class_names) == 1 and class_names[0] == ""):
