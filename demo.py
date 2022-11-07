@@ -302,6 +302,8 @@ def predict():
     print("segment_mask")
     pprint(segment_mask)
     pprint(segment_mask.shape)
+    # encode the segment mask into a png, the rgb values storing the class index out of 255
+    segment_mask_img = cv2.imencode('.png', segment_mask.cpu().numpy())[1].tobytes()
     # numpy array to bytes
     segment_mask_bytes = segment_mask.to('cpu').numpy().tobytes()
 
@@ -312,8 +314,10 @@ def predict():
         'boundingBoxes': json.dumps(boundingBoxes)
     })
 
-    response = flask.Response(body)
-    response.headers["Content-Type"] = header
+    # response = flask.Response(body)
+    # response.headers["Content-Type"] = header
+    response = flask.Response(segment_mask_img)
+    response.headers["Content-Type"] = "image/png"
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "*"
