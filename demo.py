@@ -226,7 +226,7 @@ def predict():
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
     # zero out elements where the mask is below the threshold
-    threshold = 0.9
+    threshold = 0.3
     r[r < threshold] = 0
     # encode the segment mask into a png, the rgb values storing the class index out of 255
     maskArgMax = r.argmax(dim=0)
