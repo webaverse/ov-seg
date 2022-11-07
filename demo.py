@@ -45,89 +45,21 @@ WINDOW_NAME = "Open vocabulary segmentation"
 
 
 
-
-
-
-
-
-
-
-
-""" Creating a directory """
-def create_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-""" Convert a mask to border image """
-def mask_to_border(mask):
-    h, w = mask.shape
-    border = np.zeros((h, w))
-
-    contours = find_contours(mask, 0.99)
-    for contour in contours:
-        for c in contour:
-            x = int(c[0])
-            y = int(c[1])
-            border[x][y] = 255
-
-    return border
-
-""" Mask to bounding boxes """
-def mask_to_bbox(mask):
-    bboxes = []
-
-    mask = mask_to_border(mask)
-    lbl = label(mask)
-    props = regionprops(lbl)
-    for prop in props:
-        x1 = prop.bbox[1]
-        y1 = prop.bbox[0]
-
-        x2 = prop.bbox[3]
-        y2 = prop.bbox[2]
-
-        bboxes.append([x1, y1, x2, y2])
-
-    return bboxes
-
-def parse_mask(mask):
-    mask = np.expand_dims(mask, axis=-1)
-    mask = np.concatenate([mask, mask, mask], axis=-1)
-    return mask
-
-# if __name__ == "__main__":
-def detectBoundingBoxes(image, maskImage, minBoxSize):
-    """ Load the dataset """
-    # images = sorted(glob(os.path.join("data", "image", "*")))
-    # masks = sorted(glob(os.path.join("data", "mask", "*")))
-
-    """ Create folder to save images """
-    # create_dir("results")
-
-    """ Loop over the dataset """
-    # for x, y in tqdm(zip(images, masks), total=len(images)):
-    """ Extract the name """
-    # name = x.split("/")[-1].split(".")[0]
-
-    """ Read image and mask """
-    # x = cv2.imread(x, cv2.IMREAD_COLOR)
-    # y = cv2.imread(y, cv2.IMREAD_GRAYSCALE)
-    x = image
-    y = maskImage
-
-    """ Detecting bounding boxes """
-    bboxes = mask_to_bbox(y)
-    # filter bboxes by width and height >= minBoxSize
-    bboxes = [bbox for bbox in bboxes if (bbox[2] - bbox[0]) >= minBoxSize and (bbox[3] - bbox[1]) >= minBoxSize]
-
-    """ marking bounding box on image """
-    for bbox in bboxes:
-        x = cv2.rectangle(x, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-
-    """ Saving the image """
-    cat_image = np.concatenate([x, parse_mask(y)], axis=1)
-    # cv2.imwrite(f"results/{name}.png", cat_image)
-    return bboxes, cat_image
+# use skimage to extract the bounding boxes of maskImage
+# maskImage is a numpy ndarray (1024, 1024)
+# return the list of bounding boxes in the form [x1, y1, x2, y2]
+def detectBoundingBoxes(maskImage):
+    # label image regions
+    label_image = label(maskImage)
+    # get the bounding boxes
+    boxes = []
+    for region in regionprops(label_image):
+        # take regions with large enough areas
+        if region.area >= 300:
+            # draw rectangle around segmented coins
+            minr, minc, maxr, maxc = region.bbox
+            boxes.append([minc, minr, maxc, maxr])
+    return boxes
 
 
 
@@ -306,7 +238,7 @@ def predict():
         # pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
-        bboxes, cat_image = detectBoundingBoxes(img, mask, 64)
+        bboxes = detectBoundingBoxes(img, mask, 64)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
