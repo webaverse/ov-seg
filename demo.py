@@ -282,8 +282,8 @@ def predict():
     # predictions_cpu = predictions.cpu()
     # print(f"num keys B {predictions_cpu.keys()}")
 
-    pprint(predictions)
-    pprint(predictions["sem_seg"].shape)
+    # pprint(predictions)
+    # pprint(predictions["sem_seg"].shape)
     # for all masks
     numMasks = predictions["sem_seg"].shape[0]
     boundingBoxes = []
@@ -295,9 +295,9 @@ def predict():
         # the data is a tensor()
         # we want to set the result in the mask to 1 if the class was i, and 0 otherwise
         mask = (maskArgMax == i).float()
-        print("got mask")
-        pprint(mask)
-        pprint(mask.shape)
+        # print("got mask")
+        # pprint(mask)
+        # pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
         bboxes, cat_image = detectBoundingBoxes(img, mask, 64)
@@ -310,9 +310,9 @@ def predict():
     # comput segment mask image
     r = predictions["sem_seg"]
     segment_mask = r.argmax(dim=0)
-    print("segment_mask")
-    pprint(segment_mask)
-    pprint(segment_mask.shape)
+    # print("segment_mask")
+    # pprint(segment_mask)
+    # pprint(segment_mask.shape)
     # encode the segment mask into a png, the rgb values storing the class index out of 255
     segment_mask_img = cv2.imencode('.png', segment_mask.cpu().numpy())[1].tobytes()
     # numpy array to bytes
