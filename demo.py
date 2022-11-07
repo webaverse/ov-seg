@@ -290,7 +290,7 @@ def predict():
         # pprint(mask.shape)
         # opencvFr = np.resize(mask, (576,768,3))
         bboxes, cat_image = detectBoundingBoxes(img, mask)
-        print(f"got bounding boxes: {len(boundingBoxes)}")
+        print(f"got bounding boxes: {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
