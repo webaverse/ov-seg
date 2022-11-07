@@ -24,59 +24,18 @@ import numpy as np
 from urllib3 import encode_multipart_formdata
 import json
 
-from skimage.measure import label, regionprops, find_contours
-
-# constants
-WINDOW_NAME = "Open vocabulary segmentation"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# use skimage to extract the bounding boxes of maskImage
+# use detectron to get the bounding boxes of maskImage
 # maskImage is a numpy ndarray (1024, 1024)
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
 def detectBoundingBoxes(maskImage, minArea):
-    # label image regions
-    label_image = label(maskImage)
     # get the bounding boxes
-    boxes = []
-    for region in regionprops(label_image):
-        # take regions with large enough areas
-        if region.area >= minArea:
-            # draw rectangle around segmented coins
-            minr, minc, maxr, maxc = region.bbox
-            boxes.append([minc, minr, maxc, maxr])
-    return boxes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    contours, hierarchy = cv2.findContours(maskImage, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    boundingBoxes = []
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        if w * h > minArea:
+            boundingBoxes.append([x, y, x + w, y + h])
+    return boundingBoxes
 
 def setup_cfg(args):
     # load config from file and command-line arguments
