@@ -186,7 +186,81 @@ def predict():
     threshold = float(flask.request.args.get("threshold"))
     if (threshold == None):
         threshold = 0.5
+
+    segment_mask_img = start_prediction(img, class_names, boosts, threshold)
+    response = flask.Response(segment_mask_img)
+    response.headers["Content-Type"] = "image/png"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    response.headers["X-Bounding-Boxes"] = json.dumps(boundingBoxes)
+
+    # if args.output:
+    #     if os.path.isdir(args.output):
+    #         assert os.path.isdir(args.output), args.output
+    #         out_filename = os.path.join(args.output, os.path.basename(path))
+    #     else:
+    #         assert len(args.input) == 1, "Please specify a directory with args.output"
+    #         out_filename = args.output
+    #     visualized_output.save(out_filename)
+    # else:
+    #     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+    #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
+    #     if cv2.waitKey(0) == 27:
+    #         break  # esc to quit
     
+    # return the response
+    return response
+
+
+@app.route("/label_predict", methods=["POST"])
+def label_predict():
+    # read image from the POST body data
+    image = flask.request.files["file"].read()
+    # now read the PNG and convert to ndarray
+    # use PIL, to be consistent with evaluation
+    # img = read_image(path, format="BGR") # code missing, try to do it manually; make sure it's BGR
+    img = cv2.imdecode(np.frombuffer(image, np.uint8), cv2.IMREAD_COLOR)
+
+    # class names array from the query string, split it by ","
+    classes_arg = flask.request.args.get("classes")
+    class_names = classes_arg.split(",")
+    print(f"classes arg {classes_arg}")
+    if (len(class_names) == 1 and class_names[0] == ""):
+        print("defaulting classes")
+        class_names = defaultClassNames
+    # parse boosts, which is a list of floats teh same length as class_names
+    boosts_arg = flask.request.args.get("boosts")
+    boosts = [float(boost) for boost in boosts_arg.split(",")]
+    print(f"boosts arg {boosts_arg}")
+    if (len(boosts) == 1 and boosts[0] == ""):
+        print("defaulting boosts")
+        boosts = [1.0] * len(class_names)
+    # parse the threshold query string
+    threshold = float(flask.request.args.get("threshold"))
+    if (threshold == None):
+        threshold = 0.5
+
+    segment_mask_img = start_prediction(img, class_names, boosts, threshold)
+    response = flask.Response(segment_mask_img)
+    response.headers["Content-Type"] = "image/png"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    response.headers["X-Bounding-Boxes"] = json.dumps(boundingBoxes)
+
+    return response
+
+
+def start_prediction(img, class_names, boosts, threshold):
     start_time = time.time()
     predictions, visualized_output = demo.run_on_image(img, class_names)
     # visualized_output is a VisImage object
@@ -276,33 +350,14 @@ def predict():
         # print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
-    response = flask.Response(segment_mask_img)
-    response.headers["Content-Type"] = "image/png"
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Expose-Headers"] = "*"
-    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
-    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
-    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-    response.headers["X-Bounding-Boxes"] = json.dumps(boundingBoxes)
+    return segment_mask_img
 
-    # if args.output:
-    #     if os.path.isdir(args.output):
-    #         assert os.path.isdir(args.output), args.output
-    #         out_filename = os.path.join(args.output, os.path.basename(path))
-    #     else:
-    #         assert len(args.input) == 1, "Please specify a directory with args.output"
-    #         out_filename = args.output
-    #     visualized_output.save(out_filename)
-    # else:
-    #     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-    #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
-    #     if cv2.waitKey(0) == 27:
-    #         break  # esc to quit
-    
-    # return the response
-    return response
+
+@app.route("/demo", methods=["GET"])
+def upload_file():
+    error = "not_found"
+    return flask.render_template("index.html", error=error)
+
 
 # listen as a threaded server on 0.0.0.0:80
-app.run(host="0.0.0.0", port=80, threaded=True)
+app.run(host="0.0.0.0", port=8080, threaded=True)
