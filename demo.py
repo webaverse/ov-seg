@@ -291,7 +291,7 @@ def predict():
     for i in range(numMasks):
         # get the mask for this class (i)
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
-        mask = mask = tf.where(maskArgMax == i, 1, 0)
+        mask = maskArgMax == i
         print("got mask")
         pprint(mask)
         pprint(mask.shape)
