@@ -283,13 +283,15 @@ def predict():
     pprint(predictions["sem_seg"].shape)
     # for all masks
     numMasks = predictions["sem_seg"].shape[0]
+    boundingBoxes = []
     for i in range(numMasks):
         mask = predictions["sem_seg"][i].cpu().numpy()
-        pprint(mask)
-        pprint(mask.shape)
+        # pprint(mask)
+        # pprint(mask.shape)
         # opencvFr = np.resize(mask, (576,768,3))
-        boundingBoxes, cat_image = detectBoundingBoxes(img, mask)
+        bboxes, cat_image = detectBoundingBoxes(img, mask)
         print(f"got bounding boxes: {len(boundingBoxes)}")
+        boundingBoxes.append(bboxes)
 
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
     # sem_seg_bytes = sem_seg.cpu().numpy().tobytes()
@@ -297,6 +299,7 @@ def predict():
     body, header = encode_multipart_formdata({
         'previewImg': imgBytes,
         # 'predictions': sem_seg_bytes
+        'boundingBoxes': json.dumps(boundingBoxes)
     })
 
     response = flask.Response(body)
