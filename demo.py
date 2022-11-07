@@ -28,7 +28,7 @@ import json
 # maskImage is a boolean ndarray (1024, 1024) of mask data
 # return the list of bounding boxes in the form [x1, y1, x2, y2]
 # use a flood fill algorithm to find the bounding boxes
-def detectBoundingBoxes(maskImage, minArea):
+def detectBoundingBoxes(maskImage, minSize, maxSize):
     maskImage = maskImage.astype(np.uint8)
     maskImage = cv2.bitwise_not(maskImage)
     maskImage = cv2.dilate(maskImage, np.ones((3, 3), np.uint8), iterations=1)
@@ -37,7 +37,7 @@ def detectBoundingBoxes(maskImage, minArea):
     boundingBoxes = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        if w * h > minArea:
+        if w >= minSize and h >= minSize and w < maxSize and h < maxSize:
             boundingBoxes.append([x, y, x + w, y + h])
     return boundingBoxes
 
@@ -210,7 +210,7 @@ def predict():
         # pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
-        bboxes = detectBoundingBoxes(mask, 300)
+        bboxes = detectBoundingBoxes(mask, 64, 1000)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
