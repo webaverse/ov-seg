@@ -32,13 +32,9 @@ def detectBoundingBoxes(maskImage, minArea):
     pprint("maskImage")
     pprint(maskImage)
     # FindContours supports only CV_8UC1 images when mode != CV_RETR_FLOODFILL otherwise supports CV_32SC1 images only in function 'cvStartFindContours_Impl'
-    # therefore, convert the image before passing to findContours
+    # therefore, convert to CV_8UC1
     cv2Image = cv2.cvtColor(maskImage, cv2.COLOR_GRAY2BGR)
-    contours, hierarchy = cv2.findContours(
-        mode=cv2.RETR_FLOODFILL,
-        method=cv2.CHAIN_APPROX_SIMPLE,
-        image=cv2Image,
-    )
+    contours, hierarchy = cv2.findContours(cv2Image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     boundingBoxes = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
