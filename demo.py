@@ -31,7 +31,7 @@ import json
 def detectBoundingBoxes(maskImage, minSize):
     maskImage = maskImage.astype(np.uint8)
     maskImage = cv2.bitwise_not(maskImage)
-    maskImage = cv2.dilate(maskImage, np.ones((3, 3), np.uint8), iterations=1)
+    maskImage = cv2.dilate(maskImage, np.ones((32, 32), np.uint8), iterations=1)
     maskImage = cv2.bitwise_not(maskImage)
     contours, hierarchy = cv2.findContours(maskImage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     boundingBoxes = []
