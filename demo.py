@@ -170,8 +170,10 @@ def predict():
 
     # class names array from the query string, split it by ","
     class_names = flask.request.args.get("`classes`").split(",")
+    print(f"classes arg {flask.request.args.get("`classes`")}")
     if (len(class_names) == 1 and class_names[0] == ""):
-        class_names = [defaultClassNames]
+        print("defaulting classes")
+        class_names = defaultClassNames
     # parse the threshold query string
     threshold = float(flask.request.args.get("threshold"))
     if (threshold == None):
