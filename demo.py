@@ -192,7 +192,7 @@ def predict():
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
     # zero out elements where the mask is below the threshold
-    threshold = 1.5
+    threshold = 1.0
     r[r < threshold] = 0
     # get the argmax
     maskArgMax = r.argmax(dim=0)
