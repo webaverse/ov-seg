@@ -37,7 +37,7 @@ def detectBoundingBoxes(maskImage, minSize, maxSize):
     boundingBoxes = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        if w >= minSize and h >= minSize and w < maxSize and h < maxSize:
+        if (w >= minSize and h >= minSize) and (w < maxSize or h < maxSize):
             boundingBoxes.append([x, y, x + w, y + h])
     return boundingBoxes
 
