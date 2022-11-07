@@ -299,6 +299,9 @@ def predict():
     # comput segment mask image
     r = predictions["sem_seg"]
     segment_mask = r.argmax(dim=0)
+    print("segment_mask")
+    pprint(segment_mask)
+    pprint(segment_mask.shape)
     # numpy array to bytes
     segment_mask_bytes = segment_mask.to('cpu').numpy().tobytes()
 
