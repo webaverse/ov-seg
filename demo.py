@@ -210,7 +210,7 @@ def predict():
         # pprint(mask.shape)
         # convert to numpy
         mask = mask.cpu().numpy()
-        bboxes = detectBoundingBoxes(mask, 64, 1000)
+        bboxes = detectBoundingBoxes(mask, 64, 750)
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
