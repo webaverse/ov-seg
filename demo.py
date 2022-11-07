@@ -175,6 +175,13 @@ def predict():
     if (len(class_names) == 1 and class_names[0] == ""):
         print("defaulting classes")
         class_names = defaultClassNames
+    # parse boosts, which is a list of floats teh same length as class_names
+    boosts_arg = flask.request.args.get("boosts")
+    boosts = [float(boost) for boost in boosts_arg.split(",")]
+    print(f"boosts arg {boosts_arg}")
+    if (len(boosts) == 1 and boosts[0] == ""):
+        print("defaulting boosts")
+        boosts = [1.0] * len(class_names)
     # parse the threshold query string
     threshold = float(flask.request.args.get("threshold"))
     if (threshold == None):
@@ -232,8 +239,13 @@ def predict():
     # for all masks
     numMasks = predictions["sem_seg"].shape[0]
     boundingBoxes = []
+
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
+
+    # boost the predictions for each class
+    for i in range(numMasks):
+        r[i] = r[i] * boosts[i]
     
     # copy of r
     r2 = r.clone()
