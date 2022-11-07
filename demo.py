@@ -160,6 +160,7 @@ def setup_cfg(args):
 # demo.py --class-names 'person' 'water' 'flower' 'mat' 'fog' 'land' 'grass' 'field' 'dirt' 'metal' 'light' 'book' 'leaves' 'mountain' 'tree' 'gravel' 'wood' 'bush' 'bag' 'food' 'path' 'stairs' 'rock' 'house' 'clothes' 'animal' --input ./dalle5.png --output ./pred5 --opts MODEL.WEIGHTS ./ovseg_swinbase_vitL14_ft_mpt.pth
 # if __name__ == "__main__":
 
+defaultClassNames = ['person', 'water', 'flower', 'mat', 'fog', 'land', 'grass', 'field', 'dirt', 'metal', 'light', 'book', 'leaves', 'mountain', 'tree', 'gravel', 'wood', 'bush', 'bag', 'food', 'path', 'stairs', 'rock', 'house', 'clothes', 'animal']
 def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 demo for open vocabulary segmentation")
     parser.add_argument(
@@ -178,7 +179,7 @@ def get_parser():
         "--class-names",
         nargs="+",
         help="A list of user-defined class_names",
-        default=['person', 'water', 'flower', 'mat', 'fog', 'land', 'grass', 'field', 'dirt', 'metal', 'light', 'book', 'leaves', 'mountain', 'tree', 'gravel', 'wood', 'bush', 'bag', 'food', 'path', 'stairs', 'rock', 'house', 'clothes', 'animal'],
+        default=defaultClassNames,
     )
     parser.add_argument(
         "--output",
@@ -205,7 +206,7 @@ logger.info("Arguments: " + str(args))
 cfg = setup_cfg(args)
 
 demo = VisualizationDemo(cfg)
-class_names = args.class_names
+# class_names = args.class_names
 
 ###
 
@@ -234,6 +235,11 @@ def predict():
     # use PIL, to be consistent with evaluation
     # img = read_image(path, format="BGR") # code missing, try to do it manually; make sure it's BGR
     img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+
+    # class names array from the query string, split it by ","
+    class_names = flask.request.args.get("classes").split(",")
+    if (len(class_names) == 1 and class_names[0] == ""):
+        class_names = defaultClassNames
     
     start_time = time.time()
     predictions, visualized_output = demo.run_on_image(img, class_names)
