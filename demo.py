@@ -296,8 +296,15 @@ def predict():
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
     # sem_seg_bytes = sem_seg.cpu().numpy().tobytes()
 
+    # comput segment mask image
+    r = predictions["sem_seg"]
+    segment_mask = r.argmax(dim=0)
+    # numpy array to bytes
+    segment_mask_bytes = segment_mask.to('cpu').numpy().tobytes()
+
     body, header = encode_multipart_formdata({
         'previewImg': imgBytes,
+        'segmentMask': segment_mask_bytes,
         # 'predictions': sem_seg_bytes
         'boundingBoxes': json.dumps(boundingBoxes)
     })
