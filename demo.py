@@ -285,11 +285,16 @@ def predict():
     # for all masks
     numMasks = predictions["sem_seg"].shape[0]
     boundingBoxes = []
+    maskArgMax = np.argmax(predictions["sem_seg"], axis=0)
     for i in range(numMasks):
-        mask = predictions["sem_seg"][i].cpu().numpy()
-        # pprint(mask)
-        # pprint(mask.shape)
-        # opencvFr = np.resize(mask, (576,768,3))
+        # get the mask for this class (i)
+        # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
+        mask = maskArgMax == i
+        print("got mask")
+        pprint(mask)
+        pprint(mask.shape)
+        # convert to numpy
+        mask = mask.cpu().numpy()
         bboxes, cat_image = detectBoundingBoxes(img, mask)
         print(f"got bounding boxes: {len(bboxes)}")
         boundingBoxes.append(bboxes)
