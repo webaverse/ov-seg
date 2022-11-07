@@ -25,7 +25,6 @@ from urllib3 import encode_multipart_formdata
 import json
 
 from skimage.measure import label, regionprops, find_contours
-import tensorflow as tf
 
 # constants
 WINDOW_NAME = "Open vocabulary segmentation"
