@@ -226,7 +226,15 @@ def predict():
     numMasks = predictions["sem_seg"].shape[0]
     boundingBoxes = []
     # predictions["sem_seg"] is a Tensor
-    maskArgMax = predictions["sem_seg"].argmax(dim=0)
+    r = predictions["sem_seg"]
+    # zero out elements where the mask is below the threshold
+    threshold = 0.9
+    r[r < threshold] = 0
+    # get the argmax
+    maskArgMax = r.argmax(dim=0)
+    # encode the segment mask into a png, the rgb values storing the class index out of 255
+    segment_mask_img = cv2.imencode('.png', maskArgMax.cpu().numpy())[1].tobytes()
+    # compute bounding boxes
     for i in range(numMasks):
         # get the mask for this class (i)
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
@@ -242,33 +250,6 @@ def predict():
         print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
-    # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
-    # sem_seg_bytes = sem_seg.cpu().numpy().tobytes()
-
-    # compute segment mask image
-    r = predictions["sem_seg"]
-    # zero out elements where the mask is below the threshold
-    threshold = 0.9
-    r[r < threshold] = 0
-    # get the segment mask image as the argmax
-    segment_mask = r.argmax(dim=0)
-    # print("segment_mask")
-    # pprint(segment_mask)
-    # pprint(segment_mask.shape)
-    # encode the segment mask into a png, the rgb values storing the class index out of 255
-    segment_mask_img = cv2.imencode('.png', segment_mask.cpu().numpy())[1].tobytes()
-    # numpy array to bytes
-    # segment_mask_bytes = segment_mask.to('cpu').numpy().tobytes()
-
-    # body, header = encode_multipart_formdata({
-    #     'previewImg': imgBytes,
-    #     'segmentMask': segment_mask_bytes,
-    #     # 'predictions': sem_seg_bytes
-    #     'boundingBoxes': json.dumps(boundingBoxes)
-    # })
-
-    # response = flask.Response(body)
-    # response.headers["Content-Type"] = header
     response = flask.Response(segment_mask_img)
     response.headers["Content-Type"] = "image/png"
     response.headers["Access-Control-Allow-Origin"] = "*"
