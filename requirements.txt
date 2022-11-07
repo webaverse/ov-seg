@@ -10,3 +10,4 @@ pandas
 flask
 urllib3
 scikit-image
+imutils
