@@ -299,7 +299,7 @@ def predict():
         # convert to numpy
         mask = mask.cpu().numpy()
         bboxes, cat_image = detectBoundingBoxes(img, mask)
-        print(f"got bounding boxes: {len(bboxes)}")
+        print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
