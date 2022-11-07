@@ -117,13 +117,12 @@ def detectBoundingBoxes(image, maskImage, minBoxSize):
 
     """ Detecting bounding boxes """
     bboxes = mask_to_bbox(y)
+    # filter bboxes by width and height >= minBoxSize
+    bboxes = [bbox for bbox in bboxes if (bbox[2] - bbox[0]) >= minBoxSize and (bbox[3] - bbox[1]) >= minBoxSize]
 
     """ marking bounding box on image """
     for bbox in bboxes:
-        w = bbox[2] - bbox[0]
-        h = bbox[3] - bbox[1]
-        if (w >= minBoxSize and h >= minBoxSize):
-          x = cv2.rectangle(x, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+        x = cv2.rectangle(x, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
     """ Saving the image """
     cat_image = np.concatenate([x, parse_mask(y)], axis=1)
