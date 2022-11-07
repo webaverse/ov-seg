@@ -226,7 +226,7 @@ def predict():
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
     # encode the segment mask into a png, the rgb values storing the class index out of 255
-    segment_mask_img = cv2.imencode('.png', r.cpu().numpy())[1].tobytes()
+    segment_mask_img = cv2.imencode('.png', r)[1]
     # zero out elements where the mask is below the threshold
     threshold = 0.9
     r[r < threshold] = 0
@@ -241,7 +241,7 @@ def predict():
         # to do this, filter to include only the pixels where this class is the argmax of mask prediction set
         # the data is a tensor()
         # we want to set the result in the mask to 1 if the class was i, and 0 otherwise
-        mask = (pred_mask == i)
+        mask = (pred_mask == i).float()
         # print("got mask")
         # pprint(mask)
         # pprint(mask.shape)
