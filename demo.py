@@ -305,14 +305,14 @@ def predict():
     # encode the segment mask into a png, the rgb values storing the class index out of 255
     segment_mask_img = cv2.imencode('.png', segment_mask.cpu().numpy())[1].tobytes()
     # numpy array to bytes
-    segment_mask_bytes = segment_mask.to('cpu').numpy().tobytes()
+    # segment_mask_bytes = segment_mask.to('cpu').numpy().tobytes()
 
-    body, header = encode_multipart_formdata({
-        'previewImg': imgBytes,
-        'segmentMask': segment_mask_bytes,
-        # 'predictions': sem_seg_bytes
-        'boundingBoxes': json.dumps(boundingBoxes)
-    })
+    # body, header = encode_multipart_formdata({
+    #     'previewImg': imgBytes,
+    #     'segmentMask': segment_mask_bytes,
+    #     # 'predictions': sem_seg_bytes
+    #     'boundingBoxes': json.dumps(boundingBoxes)
+    # })
 
     # response = flask.Response(body)
     # response.headers["Content-Type"] = header
@@ -324,6 +324,7 @@ def predict():
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    response.headers["Bounding-Boxes"] = json.dumps(boundingBoxes)
 
     # if args.output:
     #     if os.path.isdir(args.output):
