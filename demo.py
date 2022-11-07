@@ -261,7 +261,7 @@ def predict():
         # convert to numpy
         mask = mask.numpy().astype(np.uint8)
         bboxes = detectBoundingBoxes(mask, 64)
-        print(f"got bounding boxes: {i} {len(bboxes)}")
+        # print(f"got bounding boxes: {i} {len(bboxes)}")
         boundingBoxes.append(bboxes)
 
     response = flask.Response(segment_mask_img)
