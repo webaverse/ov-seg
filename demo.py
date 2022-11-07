@@ -245,8 +245,12 @@ def predict():
     # sem_seg = predictions["sem_seg"] # Tensor of (num_categories, H, W), the semantic segmentation prediction.
     # sem_seg_bytes = sem_seg.cpu().numpy().tobytes()
 
-    # comput segment mask image
+    # compute segment mask image
     r = predictions["sem_seg"]
+    # zero out elements where the mask is below the threshold
+    threshold = 0.9
+    r[r < threshold] = 0
+    # get the segment mask image as the argmax
     segment_mask = r.argmax(dim=0)
     # print("segment_mask")
     # pprint(segment_mask)
