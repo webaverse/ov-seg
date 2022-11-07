@@ -74,6 +74,8 @@ def parse_mask(mask):
 def detectBoundingBoxes(maskImage, minSize):
     """ Detecting bounding boxes """
     bboxes = mask_to_bbox(maskImage)
+    # filter out bboxes that have width or height smaller than minSize
+    bboxes = [bbox for bbox in bboxes if (bbox[2] - bbox[0]) > minSize and (bbox[3] - bbox[1]) > minSize]
     return bboxes
 
 def setup_cfg(args):
@@ -226,7 +228,7 @@ def predict():
     # predictions["sem_seg"] is a Tensor
     r = predictions["sem_seg"]
     # zero out elements where the mask is below the threshold
-    threshold = 0.3
+    threshold = 0.1
     r[r < threshold] = 0
     # clear out zero values
     blank_area = (r[0] == 0)
